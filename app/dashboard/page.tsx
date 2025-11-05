@@ -12,39 +12,39 @@ import {
 } from '@heroicons/react/24/outline';
 
 const stats = [
-  { name: 'Courses Enrolled', value: '12', icon: AcademicCapIcon, change: '+2 this month' },
-  { name: 'Hours Learned', value: '48', icon: ClockIcon, change: '+12 this week' },
-  { name: 'Certificates Earned', value: '5', icon: TrophyIcon, change: '+1 this month' },
-  { name: 'Average Progress', value: '67%', icon: ChartBarIcon, change: '+5% this week' },
+  { name: 'Exams Prepared For', value: '8', icon: AcademicCapIcon, change: '+2 this month' },
+  { name: 'Study Hours', value: '156', icon: ClockIcon, change: '+24 this week' },
+  { name: 'Mock Tests Taken', value: '23', icon: TrophyIcon, change: '+5 this month' },
+  { name: 'Overall Progress', value: '72%', icon: ChartBarIcon, change: '+8% this week' },
 ];
 
 const enrolledCourses = [
   {
     id: 1,
-    title: 'Complete Web Development Bootcamp',
-    instructor: 'Sarah Johnson',
-    progress: 75,
-    image: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=400&auto=format&fit=crop',
-    nextLesson: 'Advanced JavaScript Concepts',
-    duration: '2h 30m remaining',
+    title: 'UPSC CSE 2024-25: Complete GS + CSAT',
+    instructor: 'Dr. Priya Sharma (Ex-IAS)',
+    progress: 65,
+    image: 'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=800&auto=format',
+    nextLesson: 'Indian Polity - Fundamental Rights',
+    duration: '3h 15m remaining',
   },
   {
     id: 2,
-    title: 'UI/UX Design Masterclass',
-    instructor: 'Michael Chen',
+    title: 'SSC CGL 2024-25 Tier 1 & 2',
+    instructor: 'Dr. Rajesh Kumar',
     progress: 45,
-    image: 'https://images.unsplash.com/photo-1561070791-2526d30994b5?q=80&w=400&auto=format&fit=crop',
-    nextLesson: 'Prototyping with Figma',
-    duration: '4h 15m remaining',
+    image: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=800&auto=format',
+    nextLesson: 'Quantitative Aptitude - Time & Work',
+    duration: '2h 45m remaining',
   },
   {
     id: 3,
-    title: 'Python for Data Science',
-    instructor: 'Emily Rodriguez',
-    progress: 90,
-    image: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?q=80&w=400&auto=format&fit=crop',
-    nextLesson: 'Machine Learning Basics',
-    duration: '1h 20m remaining',
+    title: 'Banking 2024-25: IBPS PO/SBI PO',
+    instructor: 'CA Neha Gupta',
+    progress: 82,
+    image: 'https://images.unsplash.com/photo-1573164713988-8665fc963095?w=800&auto=format',
+    nextLesson: 'Banking Awareness - RBI Functions',
+    duration: '1h 50m remaining',
   },
 ];
 
@@ -52,51 +52,51 @@ const recentActivity = [
   {
     id: 1,
     type: 'completed',
-    title: 'Completed "React Hooks Deep Dive"',
-    course: 'Complete Web Development Bootcamp',
-    time: '2 hours ago',
+    title: 'Completed "Indian Economy - Budget & Fiscal Policy"',
+    course: 'UPSC CSE 2024-25',
+    time: '3 hours ago',
   },
   {
     id: 2,
     type: 'certificate',
-    title: 'Earned Certificate in JavaScript Fundamentals',
-    course: 'JavaScript Essentials',
+    title: 'Earned Certificate in Quantitative Aptitude',
+    course: 'SSC CGL Preparation',
     time: '1 day ago',
   },
   {
     id: 3,
     type: 'started',
-    title: 'Started "Advanced CSS Animations"',
-    course: 'Complete Web Development Bootcamp',
+    title: 'Started "Banking Awareness"',
+    course: 'IBPS PO 2024-25',
     time: '2 days ago',
   },
   {
     id: 4,
     type: 'completed',
-    title: 'Completed "User Research Methods"',
-    course: 'UI/UX Design Masterclass',
-    time: '3 days ago',
+    title: 'Completed "Modern Indian History"',
+    course: 'UPSC CSE 2024-25',
+    time: '4 days ago',
   },
 ];
 
 const recommendations = [
   {
     id: 1,
-    title: 'Advanced React Patterns',
-    instructor: 'David Kim',
-    rating: 4.8,
-    students: 15420,
-    image: 'https://images.unsplash.com/photo-1633356122544-f134324a6cee?q=80&w=400&auto=format&fit=crop',
-    price: 89.99,
+    title: 'SSC CHSL 2024-25: LDC/DEO/PA/SA',
+    instructor: 'Prof. Amit Verma',
+    rating: 4.7,
+    students: 68000,
+    image: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=800&auto=format',
+    price: '₹3,999',
   },
   {
     id: 2,
-    title: 'Node.js Backend Development',
-    instructor: 'Sarah Johnson',
+    title: 'UPSC NDA/NA 2024-25',
+    instructor: 'Col. Sanjay Kumar',
     rating: 4.9,
-    students: 23150,
-    image: 'https://images.unsplash.com/photo-1627398242454-45a1465c2479?q=80&w=400&auto=format&fit=crop',
-    price: 79.99,
+    students: 32000,
+    image: 'https://images.unsplash.com/photo-1532629345422-7515f3d16bb6?w=800&auto=format',
+    price: '₹12,999',
   },
 ];
 
@@ -106,8 +106,8 @@ export default function DashboardPage() {
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         {/* Welcome Section */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Welcome back, Student!</h1>
-          <p className="mt-2 text-sm text-gray-600">Continue your learning journey</p>
+          <h1 className="text-3xl font-bold text-gray-900">Welcome to Your Exam Prep Dashboard!</h1>
+          <p className="mt-2 text-sm text-gray-600">Track your progress and continue your preparation</p>
         </div>
 
         {/* Stats Grid */}
@@ -276,7 +276,7 @@ export default function DashboardPage() {
                         <span className="text-yellow-400 mr-1">★</span>
                         {course.rating} ({course.students.toLocaleString()})
                       </div>
-                      <span className="text-sm font-bold text-gray-900">${course.price}</span>
+                      <span className="text-sm font-bold text-gray-900">{course.price}</span>
                     </div>
                     <button className="mt-3 w-full inline-flex justify-center items-center px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
                       View Course
