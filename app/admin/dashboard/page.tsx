@@ -1,45 +1,69 @@
+"use client";
+
 import {
-  UsersIcon,
-  AcademicCapIcon,
-  CurrencyDollarIcon,
-  ChartBarIcon,
-  ArrowTrendingUpIcon,
-  ArrowTrendingDownIcon,
-} from '@heroicons/react/24/outline';
-import { courses } from '../../../constants/mockData';
+  IconUsers,
+  IconSchool,
+  IconCurrencyDollar,
+  IconChartBar,
+  IconTrendingUp,
+  IconTrendingDown,
+} from "@tabler/icons-react";
+import { courses } from "../../../constants/mockData";
+import {
+  Title,
+  Text,
+  Card,
+  Grid,
+  Group,
+  Stack,
+  Badge,
+  Avatar,
+  Table,
+  Paper,
+  ThemeIcon,
+} from "@mantine/core";
 
 // Calculate stats from actual course data
 const totalStudents = courses.reduce((sum, course) => sum + course.students, 0);
-const totalRevenue = courses.reduce((sum, course) => sum + (course.price * course.students), 0);
+const totalRevenue = courses.reduce(
+  (sum, course) => sum + course.price * course.students,
+  0
+);
 
 const stats = [
   {
-    name: 'Total Students',
-    value: totalStudents.toLocaleString('en-IN'),
-    change: '+12.5%',
-    changeType: 'increase',
-    icon: UsersIcon,
+    name: "Total Students",
+    value: totalStudents.toLocaleString("en-IN"),
+    change: "+12.5%",
+    changeType: "increase",
+    icon: IconUsers,
+    color: "blue",
   },
   {
-    name: 'Active Courses',
+    name: "Active Courses",
     value: courses.length.toString(),
-    change: '+8.2%',
-    changeType: 'increase',
-    icon: AcademicCapIcon,
+    change: "+8.2%",
+    changeType: "increase",
+    icon: IconSchool,
+    color: "indigo",
   },
   {
-    name: 'Total Revenue',
-    value: `₹${totalRevenue.toLocaleString('en-IN')}`,
-    change: '+23.1%',
-    changeType: 'increase',
-    icon: CurrencyDollarIcon,
+    name: "Total Revenue",
+    value: `₹${(totalRevenue / 100099000).toLocaleString("en-IN")}`,
+    change: "+23.1%",
+    changeType: "increase",
+    icon: IconCurrencyDollar,
+    color: "green",
   },
   {
-    name: 'Avg. Rating',
-    value: (courses.reduce((sum, c) => sum + c.rating, 0) / courses.length).toFixed(1),
-    change: '+2.4%',
-    changeType: 'increase',
-    icon: ChartBarIcon,
+    name: "Avg. Rating",
+    value: (
+      courses.reduce((sum, c) => sum + c.rating, 0) / courses.length
+    ).toFixed(1),
+    change: "+2.4%",
+    changeType: "increase",
+    icon: IconChartBar,
+    color: "purple",
   },
 ];
 
@@ -47,185 +71,251 @@ const stats = [
 const topCourses = [...courses]
   .sort((a, b) => b.students - a.students)
   .slice(0, 4)
-  .map(course => ({
+  .map((course) => ({
     id: course.id,
     title: course.title,
     instructor: course.instructor,
     enrollments: course.students,
-    revenue: `₹${(course.price * course.students).toLocaleString('en-IN')}`,
-    status: 'Active',
+    revenue: `₹${(course.price * course.students).toLocaleString("en-IN")}`,
+    status: "Active",
   }));
 
 const recentUsers = [
   {
     id: 1,
-    name: 'Emily Johnson',
-    email: 'emily@example.com',
-    joinedDate: '2024-11-01',
+    name: "Emily Johnson",
+    email: "emily@example.com",
+    joinedDate: "2024-11-01",
     courses: 3,
-    status: 'Active',
+    status: "Active",
   },
   {
     id: 2,
-    name: 'Michael Chen',
-    email: 'michael@example.com',
-    joinedDate: '2024-11-02',
+    name: "Michael Chen",
+    email: "michael@example.com",
+    joinedDate: "2024-11-02",
     courses: 5,
-    status: 'Active',
+    status: "Active",
   },
   {
     id: 3,
-    name: 'Sarah Davis',
-    email: 'sarah@example.com',
-    joinedDate: '2024-11-03',
+    name: "Sarah Davis",
+    email: "sarah@example.com",
+    joinedDate: "2024-11-03",
     courses: 2,
-    status: 'Active',
+    status: "Active",
   },
   {
     id: 4,
-    name: 'David Kim',
-    email: 'david@example.com',
-    joinedDate: '2024-11-04',
+    name: "David Kim",
+    email: "david@example.com",
+    joinedDate: "2024-11-04",
     courses: 4,
-    status: 'Active',
+    status: "Active",
   },
 ];
 
 export default function AdminDashboardPage() {
   return (
-    <div>
-      <h1 className="text-2xl font-semibold text-gray-900 mb-8">Dashboard Overview</h1>
+    <Stack gap="xl">
+      <div>
+        <Title order={1} fw={700}>
+          Dashboard Overview
+        </Title>
+        <Text c="dimmed" mt="xs">
+          Welcome back! Here's what's happening with your platform today.
+        </Text>
+      </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-8">
+      <Grid>
         {stats.map((stat) => (
-          <div key={stat.name} className="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <stat.icon className="h-8 w-8 text-indigo-600" aria-hidden="true" />
-              </div>
-              <div className="ml-5 w-0 flex-1">
-                <dl>
-                  <dt className="truncate text-sm font-medium text-gray-500">{stat.name}</dt>
-                  <dd className="flex items-baseline">
-                    <div className="text-2xl font-semibold text-gray-900">{stat.value}</div>
-                    <div
-                      className={`ml-2 flex items-baseline text-sm font-semibold ${
-                        stat.changeType === 'increase' ? 'text-green-600' : 'text-red-600'
-                      }`}
-                    >
-                      {stat.changeType === 'increase' ? (
-                        <ArrowTrendingUpIcon className="h-4 w-4 mr-0.5" />
+          <Grid.Col key={stat.name} span={{ base: 12, sm: 6, lg: 3 }}>
+            <Card shadow="sm" padding="lg" radius={0} withBorder>
+              <Group justify="space-between">
+                <div style={{ flex: 1 }}>
+                  <Text size="sm" c="dimmed" fw={500}>
+                    {stat.name}
+                  </Text>
+                  <Group gap="xs" mt="xs">
+                    <Title order={2} fw={700}>
+                      {stat.value}
+                    </Title>
+                    <Group gap={4}>
+                      {stat.changeType === "increase" ? (
+                        <IconTrendingUp
+                          size={16}
+                          color="var(--mantine-color-green-6)"
+                        />
                       ) : (
-                        <ArrowTrendingDownIcon className="h-4 w-4 mr-0.5" />
+                        <IconTrendingDown
+                          size={16}
+                          color="var(--mantine-color-red-6)"
+                        />
                       )}
-                      {stat.change}
-                    </div>
-                  </dd>
-                </dl>
-              </div>
-            </div>
-          </div>
+                      <Text
+                        size="sm"
+                        fw={600}
+                        c={stat.changeType === "increase" ? "green" : "red"}
+                      >
+                        {stat.change}
+                      </Text>
+                    </Group>
+                  </Group>
+                </div>
+                <ThemeIcon
+                  size={48}
+                  radius={0}
+                  variant="gradient"
+                  gradient={{ from: stat.color, to: stat.color, deg: 90 }}
+                >
+                  <stat.icon size={24} />
+                </ThemeIcon>
+              </Group>
+            </Card>
+          </Grid.Col>
         ))}
-      </div>
+      </Grid>
 
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-        {/* Recent Courses */}
-        <div className="bg-white shadow rounded-lg">
-          <div className="px-6 py-5 border-b border-gray-200">
-            <h2 className="text-lg font-medium text-gray-900">Top Performing Courses</h2>
-          </div>
-          <div className="overflow-hidden">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Course
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Enrollments
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Revenue
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {topCourses.map((course) => (
-                  <tr key={course.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4">
-                      <div className="text-sm font-medium text-gray-900">{course.title}</div>
-                      <div className="text-sm text-gray-500">{course.instructor}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {course.enrollments.toLocaleString()}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {course.revenue}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="inline-flex rounded-full bg-green-100 px-2 text-xs font-semibold leading-5 text-green-800">
-                        {course.status}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+      <Grid>
+        {/* Top Performing Courses */}
+        <Grid.Col span={{ base: 12, lg: 6 }}>
+          <Paper shadow="sm" p="md" radius={0} withBorder>
+            <Stack gap="md">
+              <div>
+                <Title order={3} fw={600}>
+                  Top Performing Courses
+                </Title>
+                <Text size="sm" c="dimmed">
+                  Courses with highest enrollments
+                </Text>
+              </div>
+              <Table.ScrollContainer minWidth={500}>
+                <Table highlightOnHover>
+                  <Table.Thead>
+                    <Table.Tr>
+                      <Table.Th>Course</Table.Th>
+                      <Table.Th>Enrollments</Table.Th>
+                      <Table.Th>Revenue</Table.Th>
+                      <Table.Th>Status</Table.Th>
+                    </Table.Tr>
+                  </Table.Thead>
+                  <Table.Tbody>
+                    {topCourses.map((course) => (
+                      <Table.Tr key={course.id}>
+                        <Table.Td>
+                          <div>
+                            <Text fw={600} size="sm">
+                              {course.title}
+                            </Text>
+                            <Text size="xs" c="dimmed">
+                              {course.instructor}
+                            </Text>
+                          </div>
+                        </Table.Td>
+                        <Table.Td>
+                          <Text size="sm" fw={500}>
+                            {course.enrollments.toLocaleString()}
+                          </Text>
+                        </Table.Td>
+                        <Table.Td>
+                          <Text size="sm" fw={600} c="indigo">
+                            {course.revenue}
+                          </Text>
+                        </Table.Td>
+                        <Table.Td>
+                          <Badge color="green" variant="light" radius={0}>
+                            {course.status}
+                          </Badge>
+                        </Table.Td>
+                      </Table.Tr>
+                    ))}
+                  </Table.Tbody>
+                </Table>
+              </Table.ScrollContainer>
+            </Stack>
+          </Paper>
+        </Grid.Col>
 
         {/* Recent Users */}
-        <div className="bg-white shadow rounded-lg">
-          <div className="px-6 py-5 border-b border-gray-200">
-            <h2 className="text-lg font-medium text-gray-900">Recent Users</h2>
-          </div>
-          <div className="overflow-hidden">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    User
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Joined
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Courses
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {recentUsers.map((user) => (
-                  <tr key={user.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4">
-                      <div className="text-sm font-medium text-gray-900">{user.name}</div>
-                      <div className="text-sm text-gray-500">{user.email}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {user.joinedDate}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {user.courses}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="inline-flex rounded-full bg-green-100 px-2 text-xs font-semibold leading-5 text-green-800">
-                        {user.status}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </div>
+        <Grid.Col span={{ base: 12, lg: 6 }}>
+          <Paper shadow="sm" p="md" radius={0} withBorder>
+            <Stack gap="md">
+              <div>
+                <Title order={3} fw={600}>
+                  Recent Users
+                </Title>
+                <Text size="sm" c="dimmed">
+                  Latest platform registrations
+                </Text>
+              </div>
+              <Table.ScrollContainer minWidth={500}>
+                <Table highlightOnHover>
+                  <Table.Thead>
+                    <Table.Tr>
+                      <Table.Th>User</Table.Th>
+                      <Table.Th>Joined</Table.Th>
+                      <Table.Th>Courses</Table.Th>
+                      <Table.Th>Status</Table.Th>
+                    </Table.Tr>
+                  </Table.Thead>
+                  <Table.Tbody>
+                    {recentUsers.map((user) => (
+                      <Table.Tr key={user.id}>
+                        <Table.Td>
+                          <Group gap="sm">
+                            <Avatar
+                              size={36}
+                              radius={0}
+                              gradient={{
+                                from: "indigo",
+                                to: "purple",
+                                deg: 90,
+                              }}
+                            >
+                              {user.name.charAt(0)}
+                            </Avatar>
+                            <div>
+                              <Text fw={600} size="sm">
+                                {user.name}
+                              </Text>
+                              <Text size="xs" c="dimmed">
+                                {user.email}
+                              </Text>
+                            </div>
+                          </Group>
+                        </Table.Td>
+                        <Table.Td>
+                          <Text size="sm">
+                            {new Date(user.joinedDate).toLocaleDateString(
+                              "en-US",
+                              {
+                                month: "short",
+                                day: "numeric",
+                                year: "numeric",
+                              }
+                            )}
+                          </Text>
+                        </Table.Td>
+                        <Table.Td>
+                          <Badge color="indigo" variant="light" radius={0}>
+                            {user.courses} courses
+                          </Badge>
+                        </Table.Td>
+                        <Table.Td>
+                          <Badge color="green" variant="light" radius={0}>
+                            {user.status}
+                          </Badge>
+                        </Table.Td>
+                      </Table.Tr>
+                    ))}
+                  </Table.Tbody>
+                </Table>
+              </Table.ScrollContainer>
+            </Stack>
+          </Paper>
+        </Grid.Col>
+      </Grid>
+    </Stack>
   );
 }

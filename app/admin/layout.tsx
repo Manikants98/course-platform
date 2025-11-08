@@ -1,27 +1,34 @@
-'use client';
+"use client";
 
-import { Suspense } from 'react';
-// import { ErrorBoundary } from 'react-error-boundary';
-import { usePathname } from 'next/navigation';
-import Link from 'next/link';
+import { usePathname, useRouter } from "next/navigation";
+import Link from "next/link";
+import { useState } from "react";
 import {
-  HomeIcon,
-  AcademicCapIcon,
-  UsersIcon,
-  ChartBarIcon,
-  Cog6ToothIcon,
-  ArrowRightOnRectangleIcon,
-  Bars3Icon,
-  XMarkIcon,
-} from '@heroicons/react/24/outline';
-import { useState } from 'react';
+  AppShell,
+  NavLink,
+  Burger,
+  Group,
+  Text,
+  Avatar,
+  Badge,
+  UnstyledButton,
+  Menu,
+  rem,
+  Stack,
+  Divider,
+  Button,
+} from "@mantine/core";
+import {
+  IconHome,
+  IconSchool,
+  IconBell,
+  IconLogout,
+  IconArrowLeft,
+} from "@tabler/icons-react";
 
 const navigation = [
-  { name: 'Dashboard', href: '/admin/dashboard', icon: HomeIcon },
-  { name: 'Courses', href: '/admin/dashboard/courses', icon: AcademicCapIcon },
-  { name: 'Users', href: '/admin/dashboard/users', icon: UsersIcon },
-  { name: 'Analytics', href: '/admin/dashboard/analytics', icon: ChartBarIcon },
-  { name: 'Settings', href: '/admin/dashboard/settings', icon: Cog6ToothIcon },
+  { name: "Dashboard", href: "/admin/dashboard", icon: IconHome },
+  { name: "Courses", href: "/admin/dashboard/courses", icon: IconSchool },
 ];
 
 export default function AdminLayout({
@@ -29,149 +36,158 @@ export default function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [mobileOpened, setMobileOpened] = useState(false);
+  const [desktopOpened, setDesktopOpened] = useState(true);
   const pathname = usePathname();
+  const router = useRouter();
+
+  const handleLogout = () => {
+    router.push("/admin/login");
+  };
+
+  const getActiveRoute = () => {
+    return (
+      navigation.find(
+        (item) =>
+          pathname === item.href || pathname?.startsWith(item.href + "/")
+      )?.name || "Dashboard"
+    );
+  };
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      {/* Mobile sidebar */}
-      <div className={`relative z-50 lg:hidden ${sidebarOpen ? '' : 'hidden'}`}>
-        <div className="fixed inset-0 bg-gray-900/80" onClick={() => setSidebarOpen(false)} />
-        <div className="fixed inset-0 flex">
-          <div className="relative mr-16 flex w-full max-w-xs flex-1">
-            <div className="absolute left-full top-0 flex w-16 justify-center pt-5">
-              <button type="button" className="-m-2.5 p-2.5" onClick={() => setSidebarOpen(false)}>
-                <XMarkIcon className="h-6 w-6 text-white" aria-hidden="true" />
-              </button>
-            </div>
-            <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-white px-6 pb-2">
-              <div className="flex h-16 shrink-0 items-center">
-                <h1 className="text-2xl font-bold text-indigo-600">EduVerse Admin</h1>
-              </div>
-              <nav className="flex flex-1 flex-col">
-                <ul role="list" className="flex flex-1 flex-col gap-y-7">
-                  <li>
-                    <ul role="list" className="-mx-2 space-y-1">
-                      {navigation.map((item) => (
-                        <li key={item.name}>
-                          <Link
-                            href={item.href}
-                            className={`${
-                              pathname === item.href
-                                ? 'bg-indigo-50 text-indigo-600'
-                                : 'text-gray-700 hover:text-indigo-600 hover:bg-gray-50'
-                            } group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold`}
-                            onClick={() => setSidebarOpen(false)}
-                          >
-                            <item.icon className="h-6 w-6 shrink-0" aria-hidden="true" />
-                            {item.name}
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
-                  </li>
-                  <li className="mt-auto">
-                    <Link
-                      href="/"
-                      className="group -mx-2 flex gap-x-3 rounded-md p-2 text-sm font-semibold leading-6 text-gray-700 hover:bg-gray-50 hover:text-indigo-600"
-                    >
-                      <ArrowRightOnRectangleIcon className="h-6 w-6 shrink-0" aria-hidden="true" />
-                      Back to Site
-                    </Link>
-                  </li>
-                </ul>
-              </nav>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Desktop sidebar */}
-      <div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-72 lg:flex-col">
-        <div className="flex grow flex-col gap-y-5 overflow-y-auto border-r border-gray-200 bg-white px-6">
-          <div className="flex h-16 shrink-0 items-center">
-            <h1 className="text-2xl font-bold text-indigo-600">EduVerse Admin</h1>
-          </div>
-          <nav className="flex flex-1 flex-col">
-            <ul role="list" className="flex flex-1 flex-col gap-y-7">
-              <li>
-                <ul role="list" className="-mx-2 space-y-1">
-                  {navigation.map((item) => (
-                    <li key={item.name}>
-                      <Link
-                        href={item.href}
-                        className={`${
-                          pathname === item.href
-                            ? 'bg-indigo-50 text-indigo-600'
-                            : 'text-gray-700 hover:text-indigo-600 hover:bg-gray-50'
-                        } group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold`}
-                      >
-                        <item.icon className="h-6 w-6 shrink-0" aria-hidden="true" />
-                        {item.name}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </li>
-              <li className="mt-auto">
-                <Link
-                  href="/"
-                  className="group -mx-2 flex gap-x-3 rounded-md p-2 text-sm font-semibold leading-6 text-gray-700 hover:bg-gray-50 hover:text-indigo-600"
-                >
-                  <ArrowRightOnRectangleIcon className="h-6 w-6 shrink-0" aria-hidden="true" />
-                  Back to Site
-                </Link>
-              </li>
-            </ul>
-          </nav>
-        </div>
-      </div>
-
-      {/* Main content */}
-      <div className="lg:pl-72">
-        {/* Mobile top navigation */}
-        <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-gray-200 bg-white px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8 lg:hidden">
-          <button
-            type="button"
-            className="-m-2.5 p-2.5 text-gray-700 lg:hidden"
-            onClick={() => setSidebarOpen(true)}
-          >
-            <span className="sr-only">Open sidebar</span>
-            <Bars3Icon className="h-6 w-6" aria-hidden="true" />
-          </button>
-          <div className="flex-1 text-sm font-semibold leading-6 text-gray-900">
-            {navigation.find((item) => pathname === item.href)?.name || 'Dashboard'}
-          </div>
-        </div>
-{/* 
-        <ErrorBoundary
-          fallback={
-            <div className="p-8 text-center">
-              <h2 className="text-xl font-semibold text-red-600">Something went wrong!</h2>
-              <button
-                onClick={() => window.location.reload()}
-                className="mt-4 px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
+    <AppShell
+      header={{ height: 60 }}
+      navbar={{
+        width: 280,
+        breakpoint: "sm",
+        collapsed: { mobile: !mobileOpened, desktop: !desktopOpened },
+      }}
+      padding="md"
+    >
+      <AppShell.Header>
+        <Group h="100%" px="md" justify="space-between">
+          <Group>
+            <Burger
+              opened={mobileOpened}
+              onClick={() => setMobileOpened(!mobileOpened)}
+              hiddenFrom="sm"
+              size="sm"
+            />
+            <Text fw={700} size="xl" c="indigo">
+              {getActiveRoute()}
+            </Text>
+          </Group>
+          <Group gap="md">
+            <UnstyledButton pos="relative">
+              <IconBell size={20} stroke={1.5} />
+              <Badge
+                size="xs"
+                radius={0}
+                color="red"
+                pos="absolute"
+                top={-4}
+                right={-4}
               >
-                Try again
-              </button>
-            </div>
-          }
-        >
-          <Suspense
-            fallback={
-              <div className="flex justify-center items-center h-[calc(100vh-4rem)]">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
-              </div>
-            }
-          >
-            <main className="py-10">
-              <div className="px-4 sm:px-6 lg:px-8">
-                {children}
-              </div>
-            </main>
-          </Suspense>
-        </ErrorBoundary> */}
-      </div>
-    </div>
+                3
+              </Badge>
+            </UnstyledButton>
+            <Menu shadow="md" width={200}>
+              <Menu.Target>
+                <UnstyledButton>
+                  <Group gap="sm">
+                    <div style={{ flex: 1, textAlign: "right" }}>
+                      <Text size="sm" fw={500}>
+                        Admin User
+                      </Text>
+                      <Text size="xs" c="dimmed">
+                        admin@eduverse.com
+                      </Text>
+                    </div>
+                    <Avatar
+                      size={36}
+                      radius={0}
+                      gradient={{ from: "indigo", to: "purple", deg: 90 }}
+                    >
+                      A
+                    </Avatar>
+                  </Group>
+                </UnstyledButton>
+              </Menu.Target>
+              <Menu.Dropdown>
+                <Menu.Item
+                  leftSection={<IconLogout size={rem(14)} />}
+                  onClick={handleLogout}
+                >
+                  Logout
+                </Menu.Item>
+              </Menu.Dropdown>
+            </Menu>
+          </Group>
+        </Group>
+      </AppShell.Header>
+
+      <AppShell.Navbar p="md">
+        <Stack gap="xs">
+          <Group mb="xl">
+            <Text
+              fw={700}
+              size="xl"
+              variant="gradient"
+              gradient={{ from: "indigo", to: "purple", deg: 90 }}
+            >
+              EduVerse Admin
+            </Text>
+          </Group>
+
+          {navigation.map((item) => {
+            const isActive =
+              item.href === "/admin/dashboard"
+                ? pathname === item.href
+                : pathname === item.href ||
+                  pathname?.startsWith(item.href + "/");
+            return (
+              <NavLink
+                key={item.name}
+                component={Link}
+                href={item.href}
+                label={item.name}
+                leftSection={<item.icon size={20} stroke={1.5} />}
+                active={isActive}
+                variant="light"
+              />
+            );
+          })}
+
+          <Divider my="md" />
+
+          <Stack gap="xs">
+            <Button
+              variant="subtle"
+              color="red"
+              leftSection={<IconLogout size={18} />}
+              onClick={handleLogout}
+              justify="flex-start"
+              fullWidth
+              radius={0}
+            >
+              Logout
+            </Button>
+            <Button
+              component={Link}
+              href="/"
+              variant="subtle"
+              leftSection={<IconArrowLeft size={18} />}
+              justify="flex-start"
+              fullWidth
+              radius={0}
+            >
+              Back to Site
+            </Button>
+          </Stack>
+        </Stack>
+      </AppShell.Navbar>
+
+      <AppShell.Main>{children}</AppShell.Main>
+    </AppShell>
   );
 }

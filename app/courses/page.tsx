@@ -1,63 +1,143 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { MagnifyingGlassIcon, FunnelIcon } from '@heroicons/react/24/outline';
-import { courses } from '../../constants/mockData';
-import CourseCard from '../../components/course/CourseCard';
+import { useState, useMemo } from "react";
+import { IconSearch, IconFilter, IconX, IconSchool } from "@tabler/icons-react";
+import { courses } from "../../constants/mockData";
+import CourseCard from "../../components/course/CourseCard";
+import {
+  TextInput,
+  Select,
+  Button,
+  Paper,
+  Group,
+  Stack,
+  Text,
+  Title,
+  Badge,
+  ActionIcon,
+} from "@mantine/core";
 
-const categories = ['All', 'SSC', 'UPSC', 'Banking', 'Railway', 'Government Exams', 'Civil Services'];
-const levels = ['All Levels', 'Beginner', 'Intermediate', 'Advanced'];
+const categories = [
+  "All",
+  "SSC",
+  "UPSC",
+  "Banking",
+  "Railway",
+  "Government Exams",
+  "Civil Services",
+];
+const levels = ["All Levels", "Beginner", "Intermediate", "Advanced"];
 const sortOptions = [
-  { name: 'Most Popular', value: 'popular' },
-  { name: 'Highest Rated', value: 'rating' },
-  { name: 'Newest', value: 'newest' },
-  { name: 'Price: Low to High', value: 'price-asc' },
-  { name: 'Price: High to Low', value: 'price-desc' },
+  { name: "Most Popular", value: "popular" },
+  { name: "Highest Rated", value: "rating" },
+  { name: "Newest", value: "newest" },
+  { name: "Price: Low to High", value: "price-asc" },
+  { name: "Price: High to Low", value: "price-desc" },
 ];
 
 export default function CoursesPage() {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('All');
-  const [selectedLevel, setSelectedLevel] = useState('All Levels');
-  const [sortBy, setSortBy] = useState('popular');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [selectedLevel, setSelectedLevel] = useState("All Levels");
+  const [sortBy, setSortBy] = useState("popular");
   const [showFilters, setShowFilters] = useState(false);
 
-  const filteredCourses = courses.filter((course) => {
-    const matchesSearch = course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         course.instructor.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = selectedCategory === 'All' || course.category.includes(selectedCategory);
-    const matchesLevel = selectedLevel === 'All Levels' || course.level === selectedLevel;
-    
-    return matchesSearch && matchesCategory && matchesLevel;
-  });
+  const filteredAndSortedCourses = useMemo(() => {
+    let filtered = courses.filter((course) => {
+      const matchesSearch =
+        course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        course.instructor.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesCategory =
+        selectedCategory === "All" ||
+        course.category.includes(selectedCategory);
+      const matchesLevel =
+        selectedLevel === "All Levels" || course.level === selectedLevel;
+
+      return matchesSearch && matchesCategory && matchesLevel;
+    });
+
+    // Apply sorting
+    switch (sortBy) {
+      case "popular":
+        filtered = [...filtered].sort((a, b) => b.students - a.students);
+        break;
+      case "rating":
+        filtered = [...filtered].sort((a, b) => b.rating - a.rating);
+        break;
+      case "newest":
+        filtered = [...filtered].sort(
+          (a, b) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+        break;
+      case "price-asc":
+        filtered = [...filtered].sort((a, b) => a.price - b.price);
+        break;
+      case "price-desc":
+        filtered = [...filtered].sort((a, b) => b.price - a.price);
+        break;
+      default:
+        break;
+    }
+
+    return filtered;
+  }, [searchQuery, selectedCategory, selectedLevel, sortBy]);
+
+  const hasActiveFilters =
+    searchQuery !== "" ||
+    selectedCategory !== "All" ||
+    selectedLevel !== "All Levels";
 
   return (
-    <div className="bg-white">
+    <div className="bg-linear-to-b from-gray-50 to-white min-h-screen">
       {/* Hero Section */}
-      <div className="bg-indigo-700">
-        <div className="mx-auto max-w-7xl px-6 py-16 sm:py-24 lg:px-8">
+      <div className="relative bg-linear-to-br from-indigo-700 via-purple-700 to-indigo-800 overflow-hidden">
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PGNpcmNsZSBjeD0iMzAiIGN5PSIzMCIgcj0iMiIvPjwvZz48L2c+PC9zdmc+')] opacity-20"></div>
+        <div className="relative mx-auto max-w-7xl px-6 py-16 sm:py-24 lg:px-8">
           <div className="text-center">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/10 backdrop-blur-sm px-4 py-2 mb-6 border border-white/20">
+              <IconSchool size={16} className="text-indigo-200" />
+              <span className="text-sm font-medium text-white">
+                {courses.length}+ Courses Available
+              </span>
+            </div>
             <h1 className="text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl">
               Government Exam Courses
             </h1>
-            <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-indigo-200">
-              Comprehensive preparation courses for SSC, UPSC, Banking, Railway and other competitive exams by expert educators.
+            <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-indigo-100 sm:text-xl">
+              Comprehensive preparation courses for SSC, UPSC, Banking, Railway
+              and other competitive exams by expert educators.
             </p>
-            
+
             {/* Search Bar */}
             <div className="mx-auto mt-10 max-w-2xl">
-              <div className="relative">
-                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                  <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
-                </div>
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="block w-full rounded-md border-0 py-3 pl-10 pr-3 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-white sm:text-sm sm:leading-6"
-                  placeholder="Search for courses..."
-                />
-              </div>
+              <TextInput
+                placeholder="Search for courses, instructors..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                leftSection={<IconSearch size={20} />}
+                rightSection={
+                  searchQuery ? (
+                    <ActionIcon
+                      variant="subtle"
+                      onClick={() => setSearchQuery("")}
+                      color="gray"
+                    >
+                      <IconX size={18} />
+                    </ActionIcon>
+                  ) : null
+                }
+                size="lg"
+                radius={0}
+                styles={{
+                  input: {
+                    backgroundColor: "rgba(255, 255, 255, 0.95)",
+                    backdropFilter: "blur(4px)",
+                    border: "1px solid rgba(255, 255, 255, 0.2)",
+                    color: "#111827",
+                  },
+                }}
+              />
             </div>
           </div>
         </div>
@@ -66,112 +146,130 @@ export default function CoursesPage() {
       <div className="mx-auto max-w-7xl px-6 py-12 lg:px-8">
         {/* Filters */}
         <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900">
-              {filteredCourses.length} courses found
-            </h2>
-            <button
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900">
+                {filteredAndSortedCourses.length} course
+                {filteredAndSortedCourses.length !== 1 ? "s" : ""} found
+              </h2>
+              {hasActiveFilters && (
+                <p className="mt-1 text-sm text-gray-500">
+                  Filtered from {courses.length} total courses
+                </p>
+              )}
+            </div>
+            <Button
               onClick={() => setShowFilters(!showFilters)}
-              className="inline-flex items-center gap-x-1.5 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 lg:hidden"
+              leftSection={<IconFilter size={18} />}
+              variant="default"
+              radius={0}
+              className="lg:hidden"
             >
-              <FunnelIcon className="-ml-0.5 h-5 w-5" aria-hidden="true" />
               Filters
-            </button>
+            </Button>
           </div>
 
-          <div className={`${showFilters ? 'block' : 'hidden'} lg:block`}>
+          <Paper
+            shadow="sm"
+            p="lg"
+            radius={0}
+            withBorder
+            style={{ display: showFilters ? "block" : "none" }}
+            className="lg:block"
+          >
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {/* Category Filter */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
-                <select
-                  value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value)}
-                  className="block w-full rounded-md border-0 py-2 pl-3 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                >
-                  {categories.map((category) => (
-                    <option key={category} value={category}>
-                      {category}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              <Select
+                label="Category"
+                value={selectedCategory}
+                onChange={(value) => setSelectedCategory(value || "All")}
+                data={categories.map((category) => ({
+                  value: category,
+                  label: category,
+                }))}
+                radius={0}
+              />
 
               {/* Level Filter */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Level</label>
-                <select
-                  value={selectedLevel}
-                  onChange={(e) => setSelectedLevel(e.target.value)}
-                  className="block w-full rounded-md border-0 py-2 pl-3 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                >
-                  {levels.map((level) => (
-                    <option key={level} value={level}>
-                      {level}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              <Select
+                label="Level"
+                value={selectedLevel}
+                onChange={(value) => setSelectedLevel(value || "All Levels")}
+                data={levels.map((level) => ({
+                  value: level,
+                  label: level,
+                }))}
+                radius={0}
+              />
 
               {/* Sort By */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Sort By</label>
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
-                  className="block w-full rounded-md border-0 py-2 pl-3 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                >
-                  {sortOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              <Select
+                label="Sort By"
+                value={sortBy}
+                onChange={(value) => setSortBy(value || "popular")}
+                data={sortOptions.map((option) => ({
+                  value: option.value,
+                  label: option.name,
+                }))}
+                radius={0}
+              />
 
               {/* Clear Filters */}
               <div className="flex items-end">
-                <button
+                <Button
                   onClick={() => {
-                    setSearchQuery('');
-                    setSelectedCategory('All');
-                    setSelectedLevel('All Levels');
-                    setSortBy('popular');
+                    setSearchQuery("");
+                    setSelectedCategory("All");
+                    setSelectedLevel("All Levels");
+                    setSortBy("popular");
                   }}
-                  className="w-full rounded-md bg-gray-100 px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm hover:bg-gray-200"
+                  disabled={!hasActiveFilters}
+                  variant="light"
+                  fullWidth
+                  radius={0}
                 >
                   Clear Filters
-                </button>
+                </Button>
               </div>
             </div>
-          </div>
+          </Paper>
         </div>
 
         {/* Course Grid */}
-        {filteredCourses.length > 0 ? (
-          <div className="grid grid-cols-1 gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
-            {filteredCourses.map((course) => (
+        {filteredAndSortedCourses.length > 0 ? (
+          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+            {filteredAndSortedCourses.map((course) => (
               <CourseCard key={course.id} course={course} />
             ))}
           </div>
         ) : (
-          <div className="text-center py-12">
-            <svg
-              className="mx-auto h-12 w-12 text-gray-400"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              aria-hidden="true"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-            <h3 className="mt-2 text-sm font-semibold text-gray-900">No courses found</h3>
-            <p className="mt-1 text-sm text-gray-500">Try adjusting your search or filter criteria.</p>
+          <div className="text-center py-20">
+            <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-full bg-gray-100">
+              <IconSearch size={48} className="text-gray-400" />
+            </div>
+            <h3 className="mt-6 text-xl font-semibold text-gray-900">
+              No courses found
+            </h3>
+            <p className="mt-2 text-base text-gray-500">
+              Try adjusting your search or filter criteria to find what you're
+              looking for.
+            </p>
+            {hasActiveFilters && (
+              <Button
+                onClick={() => {
+                  setSearchQuery("");
+                  setSelectedCategory("All");
+                  setSelectedLevel("All Levels");
+                  setSortBy("popular");
+                }}
+                variant="filled"
+                color="indigo"
+                radius={0}
+                mt="md"
+              >
+                Clear all filters
+              </Button>
+            )}
           </div>
         )}
       </div>

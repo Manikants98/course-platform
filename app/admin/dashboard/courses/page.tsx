@@ -1,186 +1,261 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { PlusIcon, PencilIcon, TrashIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
-import { courses } from '../../../../constants/mockData';
-import toast from 'react-hot-toast';
+import { useState } from "react";
+import { IconPlus, IconEdit, IconTrash, IconSearch } from "@tabler/icons-react";
+import { courses, type Course } from "../../../../constants/mockData";
+import {
+  Title,
+  Text,
+  Button,
+  TextInput,
+  Select,
+  Paper,
+  Table,
+  Group,
+  Stack,
+  Badge,
+  ActionIcon,
+  Pagination,
+  Image,
+} from "@mantine/core";
+import { modals } from "@mantine/modals";
+import { notifications } from "@mantine/notifications";
+import CourseFormDrawer from "../../../../components/admin/CourseFormDrawer";
 
 export default function AdminCoursesPage() {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedStatus, setSelectedStatus] = useState('all');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedStatus, setSelectedStatus] = useState("all");
+  const [drawerOpened, setDrawerOpened] = useState(false);
+  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
+  const [drawerMode, setDrawerMode] = useState<"create" | "edit">("create");
 
   const filteredCourses = courses.filter((course) => {
-    const matchesSearch = course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         course.instructor.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch =
+      course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      course.instructor.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesSearch;
   });
 
-  const handleDelete = (courseId: string, courseTitle: string) => {
-    if (confirm(`Are you sure you want to delete "${courseTitle}"?`)) {
-      toast.success('Course deleted successfully');
+  const openCreateDrawer = () => {
+    setSelectedCourse(null);
+    setDrawerMode("create");
+    setDrawerOpened(true);
+  };
+
+  const openEditDrawer = (course: Course) => {
+    setSelectedCourse(course);
+    setDrawerMode("edit");
+    setDrawerOpened(true);
+  };
+
+  const handleSaveCourse = (courseData: Partial<Course>) => {
+    // In a real app, this would make an API call
+    console.log("Saving course:", courseData);
+    // For now, just show a notification
+    notifications.show({
+      title: drawerMode === "create" ? "Course Created" : "Course Updated",
+      message: `Course "${courseData.title}" has been ${
+        drawerMode === "create" ? "created" : "updated"
+      } successfully.`,
+      color: "green",
+    });
+    setDrawerOpened(false);
+  };
+
+  const openDeleteModal = (courseId: string, courseTitle: string) => {
+    modals.openConfirmModal({
+      title: "Delete Course",
+      children: (
+        <Text size="sm">
+          Are you sure you want to delete &quot;{courseTitle}&quot;? This action
+          cannot be undone.
+        </Text>
+      ),
+      labels: { confirm: "Delete", cancel: "Cancel" },
+      confirmProps: { color: "red" },
+      onConfirm: () => {
+        notifications.show({
+          title: "Course Deleted",
+          message: `"${courseTitle}" has been deleted successfully.`,
+          color: "green",
+        });
+      },
+    });
+  };
+
+  const getLevelColor = (level: string) => {
+    switch (level) {
+      case "Beginner":
+        return "green";
+      case "Intermediate":
+        return "yellow";
+      case "Advanced":
+        return "red";
+      default:
+        return "gray";
     }
   };
 
   return (
-    <div>
-      <div className="sm:flex sm:items-center sm:justify-between mb-8">
+    <Stack gap="lg">
+      <Group justify="space-between" align="flex-start">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900">Course Management</h1>
-          <p className="mt-2 text-sm text-gray-700">
+          <Title order={1} fw={700}>
+            Course Management
+          </Title>
+          <Text c="dimmed" mt="xs">
             Manage all courses, add new courses, and edit existing ones.
-          </p>
+          </Text>
         </div>
-        <div className="mt-4 sm:mt-0">
-          <button
-            type="button"
-            className="inline-flex items-center justify-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500"
-          >
-            <PlusIcon className="-ml-0.5 mr-1.5 h-5 w-5" aria-hidden="true" />
-            Add New Course
-          </button>
-        </div>
-      </div>
+        <Button
+          leftSection={<IconPlus size={18} />}
+          variant="gradient"
+          gradient={{ from: "indigo", to: "purple", deg: 90 }}
+          onClick={openCreateDrawer}
+          radius={0}
+        >
+          Add New Course
+        </Button>
+      </Group>
 
       {/* Filters */}
-      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="relative flex-1 max-w-md">
-          <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-            <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
-          </div>
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="block w-full rounded-md border-0 py-2 pl-10 pr-3 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-            placeholder="Search courses..."
-          />
-        </div>
-        <div className="flex gap-2">
-          <select
-            value={selectedStatus}
-            onChange={(e) => setSelectedStatus(e.target.value)}
-            className="rounded-md border-0 py-2 pl-3 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 sm:text-sm sm:leading-6"
-          >
-            <option value="all">All Status</option>
-            <option value="active">Active</option>
-            <option value="draft">Draft</option>
-            <option value="archived">Archived</option>
-          </select>
-        </div>
-      </div>
+      <Group gap="md">
+        <TextInput
+          placeholder="Search courses..."
+          leftSection={<IconSearch size={16} />}
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          radius={0}
+          style={{ flex: 1 }}
+        />
+        <Select
+          value={selectedStatus}
+          onChange={(value) => setSelectedStatus(value || "all")}
+          data={[
+            { value: "all", label: "All Status" },
+            { value: "active", label: "Active" },
+            { value: "draft", label: "Draft" },
+            { value: "archived", label: "Archived" },
+          ]}
+          radius={0}
+          style={{ width: 150 }}
+        />
+      </Group>
 
       {/* Courses Table */}
-      <div className="bg-white shadow rounded-lg overflow-hidden">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Course
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Instructor
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Students
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Price
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Rating
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Level
-              </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {filteredCourses.map((course) => (
-              <tr key={course.id} className="hover:bg-gray-50">
-                <td className="px-6 py-4">
-                  <div className="flex items-center">
-                    <div className="h-10 w-16 flex-shrink-0">
-                      <img
-                        className="h-10 w-16 rounded object-cover"
+      <Paper shadow="sm" radius={0} withBorder>
+        <Table.ScrollContainer minWidth={1000}>
+          <Table highlightOnHover>
+            <Table.Thead>
+              <Table.Tr>
+                <Table.Th>Course</Table.Th>
+                <Table.Th>Instructor</Table.Th>
+                <Table.Th>Students</Table.Th>
+                <Table.Th>Price</Table.Th>
+                <Table.Th>Rating</Table.Th>
+                <Table.Th>Level</Table.Th>
+                <Table.Th style={{ textAlign: "right" }}>Actions</Table.Th>
+              </Table.Tr>
+            </Table.Thead>
+            <Table.Tbody>
+              {filteredCourses.map((course) => (
+                <Table.Tr key={course.id}>
+                  <Table.Td>
+                    <Group gap="sm" className="whitespace-nowrap!">
+                      <Image
                         src={course.image}
                         alt={course.title}
+                        w={60}
+                        h={40}
+                        radius={0}
+                        fit="cover"
                       />
-                    </div>
-                    <div className="ml-4">
-                      <div className="text-sm font-medium text-gray-900 line-clamp-1">
-                        {course.title}
+                      <div>
+                        <Text fw={600} size="sm" lineClamp={1}>
+                          {course.title}
+                        </Text>
+                        <Text size="xs" c="dimmed">
+                          {course.duration}
+                        </Text>
                       </div>
-                      <div className="text-sm text-gray-500">{course.duration}</div>
-                    </div>
-                  </div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {course.instructor}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {course.students.toLocaleString()}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
-                  ₹{course.price.toLocaleString('en-IN')}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="flex items-center">
-                    <span className="text-sm font-medium text-gray-900">{course.rating}</span>
-                    <span className="ml-1 text-yellow-400">★</span>
-                  </div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span
-                    className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${
-                      course.level === 'Beginner'
-                        ? 'bg-green-100 text-green-800'
-                        : course.level === 'Intermediate'
-                        ? 'bg-yellow-100 text-yellow-800'
-                        : 'bg-red-100 text-red-800'
-                    }`}
-                  >
-                    {course.level}
-                  </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <button
-                    onClick={() => toast.success('Edit functionality coming soon')}
-                    className="text-indigo-600 hover:text-indigo-900 mr-4"
-                  >
-                    <PencilIcon className="h-5 w-5" />
-                  </button>
-                  <button
-                    onClick={() => handleDelete(course.id, course.title)}
-                    className="text-red-600 hover:text-red-900"
-                  >
-                    <TrashIcon className="h-5 w-5" />
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+                    </Group>
+                  </Table.Td>
+                  <Table.Td>
+                    <Text size="sm" fw={500}>
+                      {course.instructor}
+                    </Text>
+                  </Table.Td>
+                  <Table.Td>
+                    <Badge color="blue" variant="light" radius={0}>
+                      {course.students.toLocaleString()}
+                    </Badge>
+                  </Table.Td>
+                  <Table.Td>
+                    <Text size="sm" fw={700} c="indigo">
+                      ₹{course.price.toLocaleString("en-IN")}
+                    </Text>
+                  </Table.Td>
+                  <Table.Td>
+                    <Group gap={4}>
+                      <Text size="sm" fw={600}>
+                        {course.rating}
+                      </Text>
+                      <Text size="sm" c="yellow">
+                        ★
+                      </Text>
+                    </Group>
+                  </Table.Td>
+                  <Table.Td>
+                    <Badge
+                      color={getLevelColor(course.level)}
+                      variant="light"
+                      radius={0}
+                    >
+                      {course.level}
+                    </Badge>
+                  </Table.Td>
+                  <Table.Td>
+                    <Group gap="xs" justify="flex-end">
+                      <ActionIcon
+                        variant="subtle"
+                        color="indigo"
+                        onClick={() => openEditDrawer(course)}
+                      >
+                        <IconEdit size={18} />
+                      </ActionIcon>
+                      <ActionIcon
+                        variant="subtle"
+                        color="red"
+                        onClick={() => openDeleteModal(course.id, course.title)}
+                      >
+                        <IconTrash size={18} />
+                      </ActionIcon>
+                    </Group>
+                  </Table.Td>
+                </Table.Tr>
+              ))}
+            </Table.Tbody>
+          </Table>
+        </Table.ScrollContainer>
+      </Paper>
 
       {/* Pagination */}
-      <div className="mt-6 flex items-center justify-between">
-        <div className="text-sm text-gray-700">
-          Showing <span className="font-medium">1</span> to{' '}
-          <span className="font-medium">{filteredCourses.length}</span> of{' '}
-          <span className="font-medium">{courses.length}</span> results
-        </div>
-        <div className="flex gap-2">
-          <button className="rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
-            Previous
-          </button>
-          <button className="rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
-            Next
-          </button>
-        </div>
-      </div>
-    </div>
+      <Group justify="space-between">
+        <Text size="sm" c="dimmed">
+          Showing <strong>1</strong> to{" "}
+          <strong>{filteredCourses.length}</strong> of{" "}
+          <strong>{courses.length}</strong> results
+        </Text>
+        <Pagination total={Math.ceil(courses.length / 10)} />
+      </Group>
+
+      <CourseFormDrawer
+        opened={drawerOpened}
+        onClose={() => setDrawerOpened(false)}
+        course={selectedCourse}
+        mode={drawerMode}
+        onSave={handleSaveCourse}
+      />
+    </Stack>
   );
 }
