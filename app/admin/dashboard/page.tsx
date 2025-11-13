@@ -1,14 +1,15 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import {
-  IconUsers,
   IconSchool,
-  IconCurrencyDollar,
-  IconChartBar,
+  IconBook,
+  IconBookOff,
+  IconCalendarMonth,
   IconTrendingUp,
   IconTrendingDown,
 } from "@tabler/icons-react";
-import { courses } from "../../../constants/mockData";
+import type { Course } from "../../../constants/mockData";
 import {
   Title,
   Text,
@@ -23,99 +24,167 @@ import {
   ThemeIcon,
 } from "@mantine/core";
 
-// Calculate stats from actual course data
-const totalStudents = courses.reduce((sum, course) => sum + course.students, 0);
-const totalRevenue = courses.reduce(
-  (sum, course) => sum + course.price * course.students,
-  0
-);
-
-const stats = [
-  {
-    name: "Total Students",
-    value: totalStudents.toLocaleString("en-IN"),
-    change: "+12.5%",
-    changeType: "increase",
-    icon: IconUsers,
-    color: "blue",
-  },
-  {
-    name: "Active Courses",
-    value: courses.length.toString(),
-    change: "+8.2%",
-    changeType: "increase",
-    icon: IconSchool,
-    color: "indigo",
-  },
-  {
-    name: "Total Revenue",
-    value: `₹${(totalRevenue / 100099000).toLocaleString("en-IN")}`,
-    change: "+23.1%",
-    changeType: "increase",
-    icon: IconCurrencyDollar,
-    color: "green",
-  },
-  {
-    name: "Avg. Rating",
-    value: (
-      courses.reduce((sum, c) => sum + c.rating, 0) / courses.length
-    ).toFixed(1),
-    change: "+2.4%",
-    changeType: "increase",
-    icon: IconChartBar,
-    color: "purple",
-  },
-];
-
-// Get top performing courses by students
-const topCourses = [...courses]
-  .sort((a, b) => b.students - a.students)
-  .slice(0, 4)
-  .map((course) => ({
-    id: course.id,
-    title: course.title,
-    instructor: course.instructor,
-    enrollments: course.students,
-    revenue: `₹${(course.price * course.students).toLocaleString("en-IN")}`,
-    status: "Active",
-  }));
-
-const recentUsers = [
-  {
-    id: 1,
-    name: "Emily Johnson",
-    email: "emily@example.com",
-    joinedDate: "2024-11-01",
-    courses: 3,
-    status: "Active",
-  },
-  {
-    id: 2,
-    name: "Michael Chen",
-    email: "michael@example.com",
-    joinedDate: "2024-11-02",
-    courses: 5,
-    status: "Active",
-  },
-  {
-    id: 3,
-    name: "Sarah Davis",
-    email: "sarah@example.com",
-    joinedDate: "2024-11-03",
-    courses: 2,
-    status: "Active",
-  },
-  {
-    id: 4,
-    name: "David Kim",
-    email: "david@example.com",
-    joinedDate: "2024-11-04",
-    courses: 4,
-    status: "Active",
-  },
-];
-
 export default function AdminDashboardPage() {
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState([
+    {
+      name: "Total Courses",
+      value: "0",
+      change: "+8.2%",
+      changeType: "increase" as const,
+      icon: IconBook,
+      color: "blue",
+    },
+    {
+      name: "Active Courses",
+      value: "0",
+      change: "+8.2%",
+      changeType: "increase" as const,
+      icon: IconSchool,
+      color: "green",
+    },
+    {
+      name: "Inactive Courses",
+      value: "0",
+      change: "+2.4%",
+      changeType: "increase" as const,
+      icon: IconBookOff,
+      color: "red",
+    },
+    {
+      name: "Courses This Month",
+      value: "0",
+      change: "+12.5%",
+      changeType: "increase" as const,
+      icon: IconCalendarMonth,
+      color: "purple",
+    },
+  ]);
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const [coursesRes, statsRes] = await Promise.all([
+          fetch("/api/courses"),
+          fetch("/api/courses/stats"),
+        ]);
+
+        if (coursesRes.ok) {
+          const coursesData = await coursesRes.json();
+          setCourses(coursesData);
+        }
+
+        if (statsRes.ok) {
+          const statsData = await statsRes.json();
+
+          setStats([
+            {
+              name: "Total Courses",
+              value: statsData.totalCourses.toString(),
+              change: "+8.2%",
+              changeType: "increase",
+              icon: IconBook,
+              color: "blue",
+            },
+            {
+              name: "Active Courses",
+              value: statsData.activeCourses.toString(),
+              change: "+8.2%",
+              changeType: "increase",
+              icon: IconSchool,
+              color: "green",
+            },
+            {
+              name: "Inactive Courses",
+              value: statsData.inactiveCourses.toString(),
+              change: "+2.4%",
+              changeType: "increase",
+              icon: IconBookOff,
+              color: "red",
+            },
+            {
+              name: "Courses This Month",
+              value: statsData.coursesThisMonth.toString(),
+              change: "+12.5%",
+              changeType: "increase",
+              icon: IconCalendarMonth,
+              color: "purple",
+            },
+          ]);
+        }
+      } catch (error) {
+        console.error("Error fetching dashboard data:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchData();
+  }, []);
+
+  // Get top performing courses by students
+  const topCourses = [...courses]
+    .sort((a, b) => b.students - a.students)
+    .slice(0, 4)
+    .map((course) => ({
+      id: course.id,
+      title: course.title,
+      instructor: course.instructor,
+      enrollments: course.students,
+      status: "Active",
+    }));
+
+  const recentUsers = [
+    {
+      id: 1,
+      name: "Emily Johnson",
+      email: "emily@example.com",
+      joinedDate: "2024-11-01",
+      courses: 3,
+      status: "Active",
+    },
+    {
+      id: 2,
+      name: "Michael Chen",
+      email: "michael@example.com",
+      joinedDate: "2024-11-02",
+      courses: 5,
+      status: "Active",
+    },
+    {
+      id: 3,
+      name: "Sarah Davis",
+      email: "sarah@example.com",
+      joinedDate: "2024-11-03",
+      courses: 2,
+      status: "Active",
+    },
+    {
+      id: 4,
+      name: "David Kim",
+      email: "david@example.com",
+      joinedDate: "2024-11-04",
+      courses: 4,
+      status: "Active",
+    },
+  ];
+
+  if (loading) {
+    return (
+      <Stack gap="xl">
+        <div>
+          <Title order={1} fw={700}>
+            Dashboard Overview
+          </Title>
+          <Text c="dimmed" mt="xs">
+            Loading...
+          </Text>
+        </div>
+      </Stack>
+    );
+  }
+
   return (
     <Stack gap="xl">
       <div>
@@ -196,7 +265,6 @@ export default function AdminDashboardPage() {
                     <Table.Tr>
                       <Table.Th>Course</Table.Th>
                       <Table.Th>Enrollments</Table.Th>
-                      <Table.Th>Revenue</Table.Th>
                       <Table.Th>Status</Table.Th>
                     </Table.Tr>
                   </Table.Thead>
@@ -216,11 +284,6 @@ export default function AdminDashboardPage() {
                         <Table.Td>
                           <Text size="sm" fw={500}>
                             {course.enrollments.toLocaleString()}
-                          </Text>
-                        </Table.Td>
-                        <Table.Td>
-                          <Text size="sm" fw={600} c="indigo">
-                            {course.revenue}
                           </Text>
                         </Table.Td>
                         <Table.Td>

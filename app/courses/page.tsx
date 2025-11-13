@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { IconSearch, IconFilter, IconX, IconSchool } from "@tabler/icons-react";
-import { courses } from "../../constants/mockData";
 import CourseCard from "../../components/course/CourseCard";
+import type { Course } from "../../constants/mockData";
 import {
   TextInput,
   Select,
@@ -36,52 +36,41 @@ const sortOptions = [
 ];
 
 export default function CoursesPage() {
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [selectedLevel, setSelectedLevel] = useState("All Levels");
   const [sortBy, setSortBy] = useState("popular");
   const [showFilters, setShowFilters] = useState(false);
 
-  const filteredAndSortedCourses = useMemo(() => {
-    let filtered = courses.filter((course) => {
-      const matchesSearch =
-        course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        course.instructor.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesCategory =
-        selectedCategory === "All" ||
-        course.category.includes(selectedCategory);
-      const matchesLevel =
-        selectedLevel === "All Levels" || course.level === selectedLevel;
+  useEffect(() => {
+    async function fetchCourses() {
+      try {
+        const params = new URLSearchParams();
+        if (searchQuery) params.append("search", searchQuery);
+        if (selectedCategory !== "All")
+          params.append("category", selectedCategory);
+        if (selectedLevel !== "All Levels")
+          params.append("level", selectedLevel);
+        params.append("sortBy", sortBy);
 
-      return matchesSearch && matchesCategory && matchesLevel;
-    });
-
-    // Apply sorting
-    switch (sortBy) {
-      case "popular":
-        filtered = [...filtered].sort((a, b) => b.students - a.students);
-        break;
-      case "rating":
-        filtered = [...filtered].sort((a, b) => b.rating - a.rating);
-        break;
-      case "newest":
-        filtered = [...filtered].sort(
-          (a, b) =>
-            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        );
-        break;
-      case "price-asc":
-        filtered = [...filtered].sort((a, b) => a.price - b.price);
-        break;
-      case "price-desc":
-        filtered = [...filtered].sort((a, b) => b.price - a.price);
-        break;
-      default:
-        break;
+        const res = await fetch(`/api/courses?${params.toString()}`);
+        if (res.ok) {
+          const data = await res.json();
+          setCourses(data);
+        }
+      } catch (error) {
+        console.error("Error fetching courses:", error);
+      } finally {
+        setLoading(false);
+      }
     }
 
-    return filtered;
+    fetchCourses();
   }, [searchQuery, selectedCategory, selectedLevel, sortBy]);
+
+  const filteredAndSortedCourses = courses;
 
   const hasActiveFilters =
     searchQuery !== "" ||
@@ -98,7 +87,9 @@ export default function CoursesPage() {
             <div className="inline-flex items-center gap-2 rounded-full bg-white/10 backdrop-blur-sm px-4 py-2 mb-6 border border-white/20">
               <IconSchool size={16} className="text-indigo-200" />
               <span className="text-sm font-medium text-white">
-                {courses.length}+ Courses Available
+                {loading
+                  ? "Loading..."
+                  : `${courses.length}+ Courses Available`}
               </span>
             </div>
             <h1 className="text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl">
@@ -152,7 +143,7 @@ export default function CoursesPage() {
                 {filteredAndSortedCourses.length} course
                 {filteredAndSortedCourses.length !== 1 ? "s" : ""} found
               </h2>
-              {hasActiveFilters && (
+              {hasActiveFilters && !loading && (
                 <p className="mt-1 text-sm text-gray-500">
                   Filtered from {courses.length} total courses
                 </p>
@@ -236,7 +227,16 @@ export default function CoursesPage() {
         </div>
 
         {/* Course Grid */}
-        {filteredAndSortedCourses.length > 0 ? (
+        {loading ? (
+          <div className="text-center py-20">
+            <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-full bg-gray-100">
+              <IconSearch size={48} className="text-gray-400 animate-pulse" />
+            </div>
+            <h3 className="mt-6 text-xl font-semibold text-gray-900">
+              Loading courses...
+            </h3>
+          </div>
+        ) : filteredAndSortedCourses.length > 0 ? (
           <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
             {filteredAndSortedCourses.map((course) => (
               <CourseCard key={course.id} course={course} />

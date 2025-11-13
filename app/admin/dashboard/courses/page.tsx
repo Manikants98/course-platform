@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { IconPlus, IconEdit, IconTrash, IconSearch } from "@tabler/icons-react";
-import { courses, type Course } from "../../../../constants/mockData";
+import type { Course } from "../../../../constants/mockData";
 import {
   Title,
   Text,
@@ -23,11 +23,37 @@ import { notifications } from "@mantine/notifications";
 import CourseFormDrawer from "../../../../components/admin/CourseFormDrawer";
 
 export default function AdminCoursesPage() {
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [drawerOpened, setDrawerOpened] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
   const [drawerMode, setDrawerMode] = useState<"create" | "edit">("create");
+
+  useEffect(() => {
+    fetchCourses();
+  }, []);
+
+  async function fetchCourses() {
+    try {
+      setLoading(true);
+      const res = await fetch("/api/courses");
+      if (res.ok) {
+        const data = await res.json();
+        setCourses(data);
+      }
+    } catch (error) {
+      console.error("Error fetching courses:", error);
+      notifications.show({
+        title: "Error",
+        message: "Failed to fetch courses",
+        color: "red",
+      });
+    } finally {
+      setLoading(false);
+    }
+  }
 
   const filteredCourses = courses.filter((course) => {
     const matchesSearch =
@@ -48,18 +74,57 @@ export default function AdminCoursesPage() {
     setDrawerOpened(true);
   };
 
-  const handleSaveCourse = (courseData: Partial<Course>) => {
-    // In a real app, this would make an API call
-    console.log("Saving course:", courseData);
-    // For now, just show a notification
-    notifications.show({
-      title: drawerMode === "create" ? "Course Created" : "Course Updated",
-      message: `Course "${courseData.title}" has been ${
-        drawerMode === "create" ? "created" : "updated"
-      } successfully.`,
-      color: "green",
-    });
-    setDrawerOpened(false);
+  const handleSaveCourse = async (courseData: Partial<Course>) => {
+    try {
+      if (drawerMode === "create") {
+        const res = await fetch("/api/courses", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(courseData),
+        });
+
+        if (!res.ok) {
+          const error = await res.json();
+          throw new Error(error.error || "Failed to create course");
+        }
+
+        notifications.show({
+          title: "Course Created",
+          message: `Course "${courseData.title}" has been created successfully.`,
+          color: "green",
+        });
+      } else {
+        if (!selectedCourse?.id) {
+          throw new Error("Course ID is required for update");
+        }
+
+        const res = await fetch(`/api/courses/${selectedCourse.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(courseData),
+        });
+
+        if (!res.ok) {
+          const error = await res.json();
+          throw new Error(error.error || "Failed to update course");
+        }
+
+        notifications.show({
+          title: "Course Updated",
+          message: `Course "${courseData.title}" has been updated successfully.`,
+          color: "green",
+        });
+      }
+
+      setDrawerOpened(false);
+      fetchCourses(); // Refresh the list
+    } catch (error: any) {
+      notifications.show({
+        title: "Error",
+        message: error.message || "Failed to save course",
+        color: "red",
+      });
+    }
   };
 
   const openDeleteModal = (courseId: string, courseTitle: string) => {
@@ -73,12 +138,31 @@ export default function AdminCoursesPage() {
       ),
       labels: { confirm: "Delete", cancel: "Cancel" },
       confirmProps: { color: "red" },
-      onConfirm: () => {
-        notifications.show({
-          title: "Course Deleted",
-          message: `"${courseTitle}" has been deleted successfully.`,
-          color: "green",
-        });
+      onConfirm: async () => {
+        try {
+          const res = await fetch(`/api/courses/${courseId}`, {
+            method: "DELETE",
+          });
+
+          if (!res.ok) {
+            const error = await res.json();
+            throw new Error(error.error || "Failed to delete course");
+          }
+
+          notifications.show({
+            title: "Course Deleted",
+            message: `"${courseTitle}" has been deleted successfully.`,
+            color: "green",
+          });
+
+          fetchCourses(); // Refresh the list
+        } catch (error: any) {
+          notifications.show({
+            title: "Error",
+            message: error.message || "Failed to delete course",
+            color: "red",
+          });
+        }
       },
     });
   };
@@ -158,82 +242,98 @@ export default function AdminCoursesPage() {
               </Table.Tr>
             </Table.Thead>
             <Table.Tbody>
-              {filteredCourses.map((course) => (
-                <Table.Tr key={course.id}>
-                  <Table.Td>
-                    <Group gap="sm" className="whitespace-nowrap!">
-                      <Image
-                        src={course.image}
-                        alt={course.title}
-                        w={60}
-                        h={40}
-                        radius={0}
-                        fit="cover"
-                      />
-                      <div>
-                        <Text fw={600} size="sm" lineClamp={1}>
-                          {course.title}
-                        </Text>
-                        <Text size="xs" c="dimmed">
-                          {course.duration}
-                        </Text>
-                      </div>
-                    </Group>
-                  </Table.Td>
-                  <Table.Td>
-                    <Text size="sm" fw={500}>
-                      {course.instructor}
-                    </Text>
-                  </Table.Td>
-                  <Table.Td>
-                    <Badge color="blue" variant="light" radius={0}>
-                      {course.students.toLocaleString()}
-                    </Badge>
-                  </Table.Td>
-                  <Table.Td>
-                    <Text size="sm" fw={700} c="indigo">
-                      ₹{course.price.toLocaleString("en-IN")}
-                    </Text>
-                  </Table.Td>
-                  <Table.Td>
-                    <Group gap={4}>
-                      <Text size="sm" fw={600}>
-                        {course.rating}
-                      </Text>
-                      <Text size="sm" c="yellow">
-                        ★
-                      </Text>
-                    </Group>
-                  </Table.Td>
-                  <Table.Td>
-                    <Badge
-                      color={getLevelColor(course.level)}
-                      variant="light"
-                      radius={0}
-                    >
-                      {course.level}
-                    </Badge>
-                  </Table.Td>
-                  <Table.Td>
-                    <Group gap="xs" justify="flex-end">
-                      <ActionIcon
-                        variant="subtle"
-                        color="indigo"
-                        onClick={() => openEditDrawer(course)}
-                      >
-                        <IconEdit size={18} />
-                      </ActionIcon>
-                      <ActionIcon
-                        variant="subtle"
-                        color="red"
-                        onClick={() => openDeleteModal(course.id, course.title)}
-                      >
-                        <IconTrash size={18} />
-                      </ActionIcon>
-                    </Group>
+              {loading ? (
+                <Table.Tr>
+                  <Table.Td colSpan={7} style={{ textAlign: "center" }}>
+                    <Text c="dimmed">Loading courses...</Text>
                   </Table.Td>
                 </Table.Tr>
-              ))}
+              ) : filteredCourses.length === 0 ? (
+                <Table.Tr>
+                  <Table.Td colSpan={7} style={{ textAlign: "center" }}>
+                    <Text c="dimmed">No courses found</Text>
+                  </Table.Td>
+                </Table.Tr>
+              ) : (
+                filteredCourses.map((course) => (
+                  <Table.Tr key={course.id}>
+                    <Table.Td>
+                      <Group gap="sm" className="whitespace-nowrap!">
+                        <Image
+                          src={course.image}
+                          alt={course.title}
+                          w={60}
+                          h={40}
+                          radius={0}
+                          fit="cover"
+                        />
+                        <div>
+                          <Text fw={600} size="sm" lineClamp={1}>
+                            {course.title}
+                          </Text>
+                          <Text size="xs" c="dimmed">
+                            {course.duration}
+                          </Text>
+                        </div>
+                      </Group>
+                    </Table.Td>
+                    <Table.Td>
+                      <Text size="sm" fw={500}>
+                        {course.instructor}
+                      </Text>
+                    </Table.Td>
+                    <Table.Td>
+                      <Badge color="blue" variant="light" radius={0}>
+                        {course.students.toLocaleString()}
+                      </Badge>
+                    </Table.Td>
+                    <Table.Td>
+                      <Text size="sm" fw={700} c="indigo">
+                        ₹{course.price.toLocaleString("en-IN")}
+                      </Text>
+                    </Table.Td>
+                    <Table.Td>
+                      <Group gap={4}>
+                        <Text size="sm" fw={600}>
+                          {course.rating}
+                        </Text>
+                        <Text size="sm" c="yellow">
+                          ★
+                        </Text>
+                      </Group>
+                    </Table.Td>
+                    <Table.Td>
+                      <Badge
+                        color={getLevelColor(course.level)}
+                        variant="light"
+                        radius={0}
+                      >
+                        {course.level}
+                      </Badge>
+                    </Table.Td>
+                    <Table.Td>
+                      <Group gap="xs" justify="flex-end">
+                        <ActionIcon
+                          variant="subtle"
+                          color="indigo"
+                          onClick={() => openEditDrawer(course)}
+                        >
+                          <IconEdit size={18} />
+                        </ActionIcon>
+                        <ActionIcon
+                          variant="subtle"
+                          color="red"
+                          onClick={() =>
+                            openDeleteModal(course.id, course.title)
+                          }
+                        >
+                          <IconTrash size={18} />
+                        </ActionIcon>
+                      </Group>
+                    </Table.Td>
+                  </Table.Tr>
+                ))
+              )}
             </Table.Tbody>
           </Table>
         </Table.ScrollContainer>
@@ -242,9 +342,15 @@ export default function AdminCoursesPage() {
       {/* Pagination */}
       <Group justify="space-between">
         <Text size="sm" c="dimmed">
-          Showing <strong>1</strong> to{" "}
-          <strong>{filteredCourses.length}</strong> of{" "}
-          <strong>{courses.length}</strong> results
+          {loading ? (
+            "Loading..."
+          ) : (
+            <>
+              Showing <strong>1</strong> to{" "}
+              <strong>{filteredCourses.length}</strong> of{" "}
+              <strong>{courses.length}</strong> results
+            </>
+          )}
         </Text>
         <Pagination total={Math.ceil(courses.length / 10)} />
       </Group>

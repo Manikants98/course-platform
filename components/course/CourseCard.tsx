@@ -1,10 +1,20 @@
 import Link from "next/link";
 import Image from "next/image";
 import { StarIcon } from "@heroicons/react/20/solid";
-import { Course } from "../../constants/mockData";
 
 interface CourseCardProps {
-  course: Course;
+  course: {
+    id: string;
+    title: string;
+    slug: string;
+    instructor: string;
+    price: number;
+    rating: number;
+    students: number;
+    level: "Beginner" | "Intermediate" | "Advanced";
+    category: string[];
+    image: string;
+  };
 }
 
 export default function CourseCard({ course }: CourseCardProps) {

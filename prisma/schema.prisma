@@ -1,0 +1,43 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("PRISMA_DATABASE_URL")
+}
+
+enum CourseLevel {
+  Beginner
+  Intermediate
+  Advanced
+}
+
+model Course {
+  id              String        @id @default(uuid())
+  title           String
+  slug            String        @unique
+  description     String        @db.Text
+  instructor      String
+  price           Float
+  rating          Float         @default(0)
+  students        Int           @default(0)
+  duration        String
+  level           CourseLevel
+  category        String[]
+  image           String
+  content         String        @db.Text
+  requirements    String[]
+  whatYouWillLearn String[]
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([slug])
+  @@index([level])
+  @@index([createdAt])
+  @@map("courses")
+}
+

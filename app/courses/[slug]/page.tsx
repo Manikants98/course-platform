@@ -10,7 +10,7 @@ import {
   ArrowLeftIcon,
 } from "@heroicons/react/24/outline";
 import { StarIcon as StarIconSolid } from "@heroicons/react/20/solid";
-import { courses } from "../../../constants/mockData";
+import { prisma } from "@/lib/prisma";
 
 interface CourseDetailProps {
   params: Promise<{
@@ -20,7 +20,9 @@ interface CourseDetailProps {
 
 export default async function CourseDetail({ params }: CourseDetailProps) {
   const { slug } = await params;
-  const course = courses.find((c) => c.slug === slug);
+  const course = await prisma.course.findUnique({
+    where: { slug },
+  });
 
   if (!course) {
     notFound();

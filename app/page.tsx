@@ -4,15 +4,53 @@ import {
   PlayCircleIcon,
   AcademicCapIcon,
 } from "@heroicons/react/24/outline";
-import {
-  featuredCourses,
-  popularCourses,
-  recentCourses,
-} from "../constants/mockData";
 import CourseCard from "../components/course/CourseCard";
 import Image from "next/image";
+import { prisma } from "@/lib/prisma";
+import { Course } from "@/constants/mockData";
 
-export default function Home() {
+async function getFeaturedCourses() {
+  try {
+    return await prisma.course.findMany({
+      take: 3,
+      orderBy: { createdAt: "desc" },
+    });
+  } catch (error) {
+    console.error("Error fetching featured courses:", error);
+    return [];
+  }
+}
+
+async function getPopularCourses() {
+  try {
+    return await prisma.course.findMany({
+      take: 4,
+      orderBy: { students: "desc" },
+    });
+  } catch (error) {
+    console.error("Error fetching popular courses:", error);
+    return [];
+  }
+}
+
+async function getRecentCourses() {
+  try {
+    return await prisma.course.findMany({
+      take: 4,
+      orderBy: { createdAt: "desc" },
+    });
+  } catch (error) {
+    console.error("Error fetching recent courses:", error);
+    return [];
+  }
+}
+
+export default async function Home() {
+  const [featuredCourses, popularCourses, recentCourses] = await Promise.all([
+    getFeaturedCourses(),
+    getPopularCourses(),
+    getRecentCourses(),
+  ]);
   return (
     <div className="bg-white">
       {/* Hero Section */}
